@@ -1,0 +1,371 @@
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <malloc.h>
+using namespace std;
+
+#define SIZE 1000
+#define NELEM 10000
+#define RED 0
+#define BLACK 1
+int min_friend = 10000;
+int max_friend = 0;
+int min_word = 10000;
+int max_word = 0;
+
+struct node
+{
+	string key;
+	node *parent;
+	int color;
+	int friendnum = 0;
+	node *left;
+	node *right;
+	node *next;
+	
+};
+class RBtree
+{
+	node *root;
+	node *q;
+public:
+	RBtree()
+	{
+		q = NULL;
+		root = NULL;
+	}
+	void insert_i(string id);
+	void insertfix(node *);
+	void leftrotate(node *);
+	void rightrotate(node *);
+	void del();
+	node* successor(node *);
+	void delfix(node *);
+	void search(string id);
+	void search2(node*);
+	void search3();
+	
+};
+
+void RBtree::insert_i(string id)
+{
+	node *p, *q;
+	node *t = new node;
+	t->key = id;
+	t->left = NULL;
+	t->right = NULL;
+	t->color = RED;
+	p = root;
+	q = NULL;
+	if (root == NULL)
+	{
+		root = t;
+		t->parent = NULL;
+	}
+	else
+	{
+		while (p != NULL)
+		{
+			q = p;
+			if (p->key<t->key)
+				p = p->right;
+			else 
+				p = p->left;
+		}
+		t->parent = q;
+		if (q->key<t->key)
+			q->right = t;
+		else
+			q->left = t;
+	}
+	insertfix(t);
+}
+
+void RBtree::insertfix(node *t)
+{
+	node *u;
+	if (root == t)
+	{
+		t->color = BLACK;
+		return ;
+	}
+	while (t->parent != NULL&&t->parent->color == RED)
+	{
+		node *g = t->parent->parent;
+		if (g->left == t->parent)
+		{
+			if (g->right != NULL)
+			{
+				u = g->right;
+				if (u->color == RED)
+				{
+					t->parent->color = BLACK;
+					u->color = BLACK;
+					g->color = RED;
+					t = g;
+				}
+			}
+			else
+			{
+				if (t->parent->right == t)
+				{
+					t = t->parent;
+					leftrotate(t);
+				}
+				t->parent->color = BLACK;
+				g->color = RED;
+				rightrotate(g);
+			}
+		}
+		else
+		{
+			if (g->left != NULL)
+			{
+				u = g->left;
+				if (u->color == RED)
+				{
+					t->parent->color = BLACK;
+					u->color = BLACK;
+					g->color = RED;
+					t = g;
+				}
+			}
+			else
+			{
+				if (t->parent->left == t)
+				{
+					t = t->parent;
+					rightrotate(t);
+				}
+				t->parent->color = BLACK;
+				g->color = RED;
+				leftrotate(g);
+			}
+		}
+		root->color = BLACK;
+	}
+}
+void RBtree::leftrotate(node *p)
+{
+	if (p->right == NULL)
+		return;
+	else
+	{
+		node *y = p->right;
+		if (y->left != NULL)
+		{
+			p->right = y->left;
+			y->left->parent = p;
+		}
+		else p->right = NULL;
+		if (p->parent != NULL)
+			y->parent = p->parent;
+		if (p->parent == NULL)
+			root = y;
+		else
+		{
+			if (p == p->parent->left)
+				p->parent->left = y;
+			else
+				p->parent->right = y;
+		}
+		if (p->parent != NULL)
+		{
+			y->left = p;
+			p->parent = y;
+		}
+	}
+}
+
+void RBtree::rightrotate(node *p)
+{
+	if (p->left == NULL)
+		return;
+	else
+	{
+		node *y = p->left;
+		if (y->right != NULL)
+		{
+			p->left = y->right;
+			y->right->parent = p;
+		}
+		else
+			p->left = NULL;
+		if (p->parent != NULL)
+			y->parent = p->parent;
+		if (p->parent == NULL)
+			root = y;
+		else
+		{
+			if (p == p->parent->left)
+				p->parent->left = y;
+			else
+				p->parent->right = y;
+		}
+		if (p->parent != NULL) {
+			y->right = p;
+			p->parent = y;
+		}
+	}
+}
+
+node* RBtree::successor(node *p)
+{
+	node *y = NULL;
+	if (p->left != NULL)
+	{
+		y = p->left;
+		while (y->right != NULL)
+			y = y->right;
+	}
+	else
+	{
+		y = p->right;
+		while (y->left != NULL)
+			y = y->left;
+	}
+	return y;
+}
+
+void RBtree::search(string id)
+{	string x;
+	x = id;
+	node *p = root;
+	int found = 0;
+	while (p != NULL&& found == 0)
+	{
+		if (p->key == x)
+			found = 1;
+		if (found == 0)
+		{
+			if (p->key<x)
+				p = p->right;
+			else
+				p = p->left;
+		}
+	}
+	if(p!=NULL) p->friendnum++;
+	
+}
+
+void RBtree::search3()
+{
+	node *a = root;
+	if (a == NULL) return;
+	if (a->friendnum < min_friend) min_friend = a->friendnum;
+	if (a->friendnum > max_friend) max_friend = a->friendnum;
+
+	if (a->right != NULL) search2(a->right);
+	if (a->left != NULL) search2(a->left);
+
+
+}
+void RBtree::search2(node *a)
+{
+	if (a == NULL) return;
+	if (a->friendnum < min_friend) min_friend = a->friendnum;
+	if (a->friendnum > max_friend) max_friend = a->friendnum;
+
+	if (a->right != NULL) search2(a->right);
+	if (a->left != NULL) search2(a->left);
+
+
+}
+
+int main() {
+	RBtree obj;
+	int Total_users = 0;
+	int Total_friendship_records = 0;
+	int Total_tweets = 0;
+
+	string id;
+	string id2;
+	string date;
+	string name;
+	string word;
+	string trash;
+	ifstream input;
+	
+	input.open("user.txt");
+	while (input.is_open())
+			 {		 getline(input, id);
+					 getline(input, date);
+					 getline(input, name);
+					 getline(input, trash);//enter 받기
+					 if (id.size() == 0) break;
+					 else {
+						 Total_users++;
+						 obj.insert_i(id);
+					}
+			}
+	input.close(); 
+
+	input.open("word.txt");
+	while (input.is_open()) {
+		getline(input, id);
+		getline(input, date);
+		getline(input, word);
+		getline(input, trash);//enter 받기
+		if (id.size() == 0) break;
+		else {
+			Total_tweets++;
+		}
+	}
+	input.close(); 
+
+	input.open("friend.txt");
+	while (input.is_open()) {
+		getline(input, id);
+		getline(input, id2);
+		getline(input, trash);//enter 받기
+		if (id.size() == 0) break;
+		else {
+			Total_friendship_records++;
+			obj.search(id);
+		}
+	}
+	input.close(); 
+
+
+	int menu;
+	while (1) {
+		printf("0. Read data files \n");
+		printf("1. display statistics \n");
+		printf("2. Top 5 most tweeted words \n");
+		printf("3. Top 5 most tweeted users \n");
+		printf("4. Find users who tweeted a word \n");
+		printf("5. Find all people who are friends of the above users \n");
+		printf("6. Delete all mentions of a word \n");
+		printf("7. Delete all users who mentioned a word \n");
+		printf("8. Find strongly connected components \n");
+		printf("9. Find shortest path from a given user \n");
+		printf("99. Quit \n");
+		printf("Select Menu: ");
+		scanf_s("%d", &menu);
+		printf("\n");
+
+		if (menu == 0) {
+			printf("Total users : %d \n", Total_users);
+			printf("Total friendship records : %d \n", Total_friendship_records);
+			printf("Total tweets : %d \n", Total_tweets);
+			printf("\n");
+		}
+
+		else if (menu == 1) {
+			obj.search3();
+			printf("\n");
+			printf("Average number of friends : %.1f\n", Total_friendship_records*1.00 / Total_users);
+			printf("Minimum number of friends : %d \n", min_friend);
+			printf("Maximum number of friends : %d \n", max_friend);
+			printf("\n");
+			printf("Average tweets per user : %.1f\n", Total_tweets*1.00 / Total_users);
+			printf("Minimum tweets per user : %d \n", min_word);
+			printf("Maximum tweets per user : %d \n", max_word);
+			printf("\n");
+		}
+
+
+	}
+
+}
