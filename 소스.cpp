@@ -1,4 +1,4 @@
-﻿#include <fstream>
+#include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -568,7 +568,8 @@ int main() {
 			cout << "5: " << top5id << endl;
 			printf("\n");
 		}
+		else if (menu == 99) break;
 
 	}
-
+	return 0;
 }
