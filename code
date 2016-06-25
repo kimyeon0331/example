@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include <string>
 #include <malloc.h>
+#include <locale>
 using namespace std;
 
-#define SIZE 1000
-#define NELEM 10000
+
+#define NELEM 1000
 #define RED 0
 #define BLACK 1
 int min_friend = 10000;
@@ -14,6 +15,7 @@ int max_friend = 0;
 int min_word = 10000;
 int max_word = 0;
 
+/*
 struct node
 {
 	string key;
@@ -272,12 +274,25 @@ void RBtree::search2(node *a)
 
 
 }
+*/
 
 int main() {
-	RBtree obj;
+	//std::locale::global(std::locale("ko_KR.UTF-8"));
+	//RBtree obj;
+
 	int Total_users = 0;
 	int Total_friendship_records = 0;
 	int Total_tweets = 0;
+	int top1 = 0;
+	int top2 = 0;
+	int top3 = 0;
+	int top4 = 0;
+	int top5 = 0;
+	string top1id;
+	string top2id;
+	string top3id;
+	string top4id;
+	string top5id;
 
 	string id;
 	string id2;
@@ -286,7 +301,13 @@ int main() {
 	string word;
 	string trash;
 	ifstream input;
-	
+	string ID[NELEM] = {};
+	string WORD[NELEM] = {};
+	string mostID[NELEM] = {};
+	int WNUM[NELEM] ;
+	int FNUM[NELEM];
+	int WCOUNT[NELEM];
+	int IDCOUNT[NELEM];
 	input.open("user.txt");
 	while (input.is_open())
 			 {		 getline(input, id);
@@ -296,10 +317,55 @@ int main() {
 					 if (id.size() == 0) break;
 					 else {
 						 Total_users++;
-						 obj.insert_i(id);
+						 ID[Total_users]=id;
+						 //obj.insert_i(id);
+
 					}
 			}
 	input.close(); 
+	
+	for (int i = 0; i < NELEM; i++) { WNUM[i] = 0; FNUM[i] = 0; WCOUNT[i] = 0; IDCOUNT[i] = 0;}
+	int wordflag ;
+	int idflag;
+	int idsize=0;
+	int wordsize = 0;
+
+	input.open("word.txt");
+	while (input.is_open()) {
+		wordflag = 0;
+		idflag = 0;
+		getline(input, id);
+		getline(input, date);
+		getline(input, word);
+		getline(input, trash);//enter 받기
+		if (id.size() == 0) break;
+		else {
+			Total_tweets++;
+
+			for (int i = 0; i < idsize; i++) {			if(mostID[i]==id) { IDCOUNT[i]++; idflag = 1; break; } 	}
+			if (idflag == 0) { mostID[idsize] = id; idsize++; }
+
+			//for (int i = 0; i < wordsize; i++) {if (WORD[i] == word) { WCOUNT[i]++; wordflag = 1; break; }	}
+			//if (wordflag == 0) { WORD[wordsize] = word; wordsize++; }
+
+			for (int i = 0; i < NELEM; i++) { if (ID[i] == id) WNUM[i]++; break; }
+		}
+	}
+	input.close(); 
+
+	for (int i = 0; i < idsize; i++) {if (IDCOUNT[i] > top1) { top1 = IDCOUNT[i]; top1id = mostID[i]; } }
+	for (int i = 0; i < idsize; i++) {
+	if (IDCOUNT[i] > top2&&IDCOUNT[i] < top1) { top2 = IDCOUNT[i]; top2id = mostID[i]; }
+	}
+	for (int i = 0; i < idsize; i++) {
+		if (IDCOUNT[i] > top3&&IDCOUNT[i] < top2) { top3 = IDCOUNT[i]; top3id = mostID[i]; }
+	}
+	for (int i = 0; i < idsize; i++) {
+		if (IDCOUNT[i] > top4&&IDCOUNT[i] < top3) { top4 = IDCOUNT[i]; top4id = mostID[i]; }
+	}
+	for (int i = 0; i < idsize; i++) {
+		if (IDCOUNT[i] > top5&&IDCOUNT[i] < top4) { top5 = IDCOUNT[i]; top5id = mostID[i]; }
+	}
 
 	input.open("word.txt");
 	while (input.is_open()) {
@@ -309,7 +375,33 @@ int main() {
 		getline(input, trash);//enter 받기
 		if (id.size() == 0) break;
 		else {
-			Total_tweets++;
+			 for (int i = 0; i < NELEM; i++)
+			{
+				if (ID[i] == id) {
+					if (WNUM[i] < min_word) min_word = WNUM[i];
+					if (WNUM[i] > max_word) max_word = WNUM[i];
+				}
+			}
+			
+			
+			
+		}
+	}
+	input.close();
+
+
+	input.open("friend.txt");
+	while (input.is_open()) {
+		getline(input, id);
+		getline(input, id2);
+		getline(input, trash);//enter 받기
+		if (id.size() == 0) break;
+		else {
+			Total_friendship_records++;
+			for (int i = 0; i < NELEM; i++)
+			{
+				if (ID[i] == id) FNUM[i]++;
+			}
 		}
 	}
 	input.close(); 
@@ -321,12 +413,17 @@ int main() {
 		getline(input, trash);//enter 받기
 		if (id.size() == 0) break;
 		else {
-			Total_friendship_records++;
-			obj.search(id);
+			for (int i = 0; i < NELEM; i++)
+			{
+				if (ID[i] == id) {
+					if (FNUM[i] < min_friend) min_friend = FNUM[i];
+					if (FNUM[i] > max_friend) max_friend = FNUM[i];
+				};
+			}
 		}
 	}
-	input.close(); 
-
+	input.close();
+	
 
 	int menu;
 	while (1) {
@@ -353,7 +450,7 @@ int main() {
 		}
 
 		else if (menu == 1) {
-			obj.search3();
+			
 			printf("\n");
 			printf("Average number of friends : %.1f\n", Total_friendship_records*1.00 / Total_users);
 			printf("Minimum number of friends : %d \n", min_friend);
@@ -364,7 +461,16 @@ int main() {
 			printf("Maximum tweets per user : %d \n", max_word);
 			printf("\n");
 		}
-
+		else if (menu == 3) {
+			printf("\n");
+			printf("Top 5 most tweeted users\n");
+			cout <<"1: " <<top1id << endl;
+			cout << "2: "<< top2id << endl;
+			cout << "3: " << top3id << endl;
+			cout << "4: " << top4id << endl;
+			cout << "5: " << top5id << endl;
+			printf("\n");
+		}
 
 	}
 
